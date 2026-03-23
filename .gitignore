@@ -8,6 +8,13 @@ ehthumbs.db
 Thumbs.db
 desktop.ini
 
+# ─── Internal docs (product specs — keep local only) ─────────────────────────
+documents/
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
 # VS Code
 .vscode/
 *.code-workspace
