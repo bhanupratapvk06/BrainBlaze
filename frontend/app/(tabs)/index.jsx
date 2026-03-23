@@ -113,7 +113,7 @@ export default function DashboardScreen() {
                 boxShadow: `0 8px 24px ${C.hi}33`
               }}>🔥</div>
             </div>
-            <div style={{ display: "flex", justifyContent: "spaceBetween", marginBottom: 20 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginBottom: 20 }}>
               {days.map((d, i) => {
                 const done = i < streak, today = i === streak; return (
                   <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
