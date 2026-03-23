@@ -220,24 +220,20 @@ export default function QuizTabScreen() {
                 onClick={() => router.push({ pathname: '/chapter/[name]', params: { name: ch, subject } })}
                 style={{
                   backgroundColor: C.bg2,
-                  borderRadius: 20,
+                  borderRadius: 22,
                   overflow: "hidden",
-                  border: `1px solid ${C.bdr}`,
+                  border: `1px solid ${prog > 0 ? sData.color + '33' : C.bdr}`,
                   position: "relative",
+                  boxShadow: prog > 0 ? `0 8px 24px ${sData.color}08` : "none",
                 }}
               >
-                {/* Progress accent bar */}
-                <div style={{
-                  position: "absolute", left: 0, top: 0, bottom: 0, width: 5,
-                  backgroundColor: prog > 0 ? sData.color : C.bg3,
-                }} />
-
-                <div style={{ padding: "16px 20px 16px 26px", display: "flex", alignItems: "center", gap: 16 }}>
+                <div style={{ padding: "18px 20px", display: "flex", alignItems: "center", gap: 16 }}>
                   <div style={{
-                    width: 48, height: 48, borderRadius: 14, flexShrink: 0,
+                    width: 50, height: 50, borderRadius: 16, flexShrink: 0,
                     backgroundColor: sData.color + "15",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: 24,
+                    border: `1px solid ${sData.color}22`,
                   }}>
                     {sData.icon}
                   </div>
@@ -246,7 +242,7 @@ export default function QuizTabScreen() {
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
                       <div style={{ flex: 1, minWidth: 0, paddingRight: 12 }}>
                         <p style={{
-                          fontWeight: 800, fontSize: 15, margin: 0, color: C.text,
+                          fontWeight: 800, fontSize: 16, margin: 0, color: C.text,
                           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                         }}>
                           {ch}
@@ -254,16 +250,16 @@ export default function QuizTabScreen() {
                         <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
                           <span style={{ fontSize: 11, color: dClr, fontWeight: 700 }}>{diff}</span>
                           <span style={{ color: C.muted, fontSize: 11 }}>·</span>
-                          <span style={{ fontSize: 11, color: C.muted }}>Ch. {i + 1}</span>
+                          <span style={{ fontSize: 11, color: C.muted, fontWeight: 600 }}>Ch. {i + 1}</span>
                         </div>
                       </div>
-                      <span style={{ fontWeight: 900, fontSize: 14, color: prog > 0 ? sData.color : C.muted, flexShrink: 0 }}>
+                      <span style={{ fontWeight: 900, fontSize: 13, color: prog > 0 ? sData.color : C.muted, flexShrink: 0, backgroundColor: prog > 0 ? sData.color + '10' : 'transparent', padding: '4px 8px', borderRadius: 8 }}>
                         {prog === 100 ? "✓ Done" : prog > 0 ? `${prog}%` : "New"}
                       </span>
                     </div>
 
-                    <div style={{ width: "100%", height: 4, backgroundColor: C.bg3, borderRadius: 2, overflow: "hidden" }}>
-                      <div style={{ height: "100%", borderRadius: 2, backgroundColor: sData.color, width: `${prog}%` }} />
+                    <div style={{ width: "100%", height: 5, backgroundColor: C.bg3, borderRadius: 6, overflow: "hidden" }}>
+                      <div style={{ height: "100%", borderRadius: 6, backgroundColor: sData.color, width: `${prog}%` }} />
                     </div>
                   </div>
                 </div>
