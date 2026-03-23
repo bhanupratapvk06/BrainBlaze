@@ -32,7 +32,7 @@ export default function ChapterScreen() {
       difficulty,
       mode,
       powerUp: activePowerUp,
-    }, qs.map(q => ({ ...q }))); // Clone questions so they don't get mutated globally
+    }, qs.map(q => ({ ...q })));
 
     router.push({ pathname: '/quiz/[chapter]', params: { chapter: chapterName, subject: subjectName } });
   };

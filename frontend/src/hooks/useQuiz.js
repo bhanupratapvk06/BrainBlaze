@@ -2,11 +2,11 @@ import { useQuizContext } from '../contexts/QuizContext';
 import { fuzzyMatch } from '../utils/fuzzyMatch';
 
 export const useQuiz = () => {
-  const { session, updateSession, endQuiz } = useQuizContext();
+  const { session, updateSession, endQuiz, startQuiz } = useQuizContext();
   const { questions, currentQIndex } = session;
 
   const currentQuestion = questions[currentQIndex];
-  
+
   const submitAnswer = (userAnswer) => {
     let isCorrect = false;
 
@@ -48,6 +48,7 @@ export const useQuiz = () => {
     submitAnswer,
     nextQuestion,
     endQuiz,
+    startQuiz,
     isComplete: !session.isActive && currentQIndex === questions.length - 1 && session.questions.length > 0
   };
 };

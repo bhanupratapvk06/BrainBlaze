@@ -4,6 +4,7 @@ import { Search, BookOpen, Flame, Trophy } from 'lucide-react';
 import { useAuth, useTheme, useStreak } from "../../src/hooks";
 import { Tap } from "../../src/components";
 import { makeSubjects, SHOP } from "../../src/assets/data";
+import { BottomNavSpacer } from '../../src/components/BottomNavSpacer';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -182,6 +183,7 @@ export default function ProfileScreen() {
           ))}
         </div>
       </div>
+      <BottomNavSpacer />
     </div>
   );
 }

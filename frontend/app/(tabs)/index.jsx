@@ -4,6 +4,7 @@ import { Bell, User, Shield, Snowflake, Zap, Target, Award, Bot } from 'lucide-r
 import { useAuth, useTheme, useStreak, usePowerUp } from "../../src/hooks";
 import { Tap, NotificationPanel, ThemeToggle } from "../../src/components";
 import { makeSubjects } from "../../src/assets/data";
+import { BottomNavSpacer } from '../../src/components/BottomNavSpacer';
 
 export default function DashboardScreen() {
   const router = useRouter();
@@ -195,6 +196,7 @@ export default function DashboardScreen() {
         ))}
       </div>
       <NotificationPanel open={notifOpen} onClose={() => setNotifOpen(false)} />
+      <BottomNavSpacer />
     </div>
   );
 }

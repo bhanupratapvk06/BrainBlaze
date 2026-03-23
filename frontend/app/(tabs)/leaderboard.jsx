@@ -4,6 +4,7 @@ import { ArrowLeft, Trophy, User } from 'lucide-react';
 import { useTheme, useAuth } from "../../src/hooks";
 import { Tap } from "../../src/components";
 import { makeSubjects, CHAPTERS, LB_DATA } from "../../src/assets/data";
+import { BottomNavSpacer } from '../../src/components/BottomNavSpacer';
 
 export default function LeaderboardScreen() {
   const router = useRouter();
@@ -172,6 +173,7 @@ export default function LeaderboardScreen() {
           </div>
         </div>
       )}
+      <BottomNavSpacer />
     </div>
   );
 }

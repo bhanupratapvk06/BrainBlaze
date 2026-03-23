@@ -4,6 +4,7 @@ import { ArrowLeft, Search } from 'lucide-react';
 import { useTheme } from "../../src/hooks";
 import { Tap } from "../../src/components";
 import { makeSubjects, CHAPTERS } from "../../src/assets/data";
+import { BottomNavSpacer } from '../../src/components/BottomNavSpacer';
 
 export default function QuizTabScreen() {
   const router = useRouter();
@@ -120,6 +121,7 @@ export default function QuizTabScreen() {
           })}
         </div>
       </div>
+      <BottomNavSpacer />
     </div>
   );
 }

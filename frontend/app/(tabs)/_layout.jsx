@@ -1,6 +1,7 @@
 import React from 'react';
 import { Slot, useRouter, usePathname } from 'expo-router';
 import { BottomNav } from "../../src/components";
+import { BottomNavSpacer } from '../../src/components/BottomNavSpacer';
 
 export default function TabsLayout() {
   const router = useRouter();
@@ -23,8 +24,6 @@ export default function TabsLayout() {
   return (
     <>
       <Slot />
-      {/* Spacer so content scrolls clear of the fixed nav bar */}
-      <div style={{ height: 80 }} />
       <BottomNav page={page} nav={nav} />
     </>
   );

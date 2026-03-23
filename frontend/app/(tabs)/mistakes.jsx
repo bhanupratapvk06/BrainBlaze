@@ -4,6 +4,7 @@ import { ArrowLeft, XCircle, CheckCircle, Flame } from 'lucide-react';
 import { useTheme, useMistakeBank, useXP } from "../../src/hooks";
 import { Tap, ToastNotification } from "../../src/components";
 import { makeSubjects } from "../../src/assets/data";
+import { BottomNavSpacer } from '../../src/components/BottomNavSpacer';
 
 export default function MistakesScreen() {
   const router = useRouter();
@@ -147,6 +148,7 @@ export default function MistakesScreen() {
           );
         })}
       </div>
+      <BottomNavSpacer />
     </div>
   );
 }
