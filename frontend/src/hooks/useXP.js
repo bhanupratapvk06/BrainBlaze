@@ -16,22 +16,16 @@ export const useXP = () => {
     return earned;
   };
 
-  /**
-   * Subtracts XP from the balance if affordable.
-   * Returns boolean indicating success.
-   */
-  const spendXp = async (amount) => {
-    if ((user.xpBalance || 0) >= amount) {
-      await saveUser({
-        xpBalance: user.xpBalance - amount
-      });
-      return true;
-    }
-    return false;
+  const awardXp = async (amount) => {
+    await saveUser({
+      xpEarned: (user.xpEarned || 0) + amount,
+      xpBalance: (user.xpBalance || 0) + amount
+    });
   };
 
   return { 
     addXp, 
+    awardXp,
     spendXp, 
     xpBalance: user.xpBalance || 0, 
     xpEarned: user.xpEarned || 0 

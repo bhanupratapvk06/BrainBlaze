@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { CheckCircle, XCircle, Clock, Swords, Share2, RefreshCw, Home } from 'lucide-react';
-import { useTheme, useQuiz, useAuth, useMistakeBank } from "../src/hooks";
+import { useTheme, useQuiz, useAuth, useMistakeBank, useXP } from "../src/hooks";
 import { Tap, ToastNotification } from "../src/components";
 
 export default function ResultsScreen() {
@@ -9,7 +9,7 @@ export default function ResultsScreen() {
   const { theme: C } = useTheme();
   
   const { session, endQuiz } = useQuiz();
-  const { addXp } = useAuth();
+  const { awardXp } = useXP();
   const { addMistake } = useMistakeBank();
 
   const score = session.score || 0;
@@ -36,11 +36,11 @@ export default function ResultsScreen() {
     let active = true;
     const saveResults = async () => {
       if (xpEarned > 0) {
-        await addXp(xpEarned);
+        await awardXp(xpEarned);
       }
       if (wrongAnswers.length > 0) {
         for (const w of wrongAnswers) {
-          await addMistake(w);
+          await addMistake(session.subject, session.chapter, w);
         }
       }
     };
