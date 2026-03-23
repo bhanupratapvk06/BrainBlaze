@@ -23,6 +23,16 @@ export const useXP = () => {
     });
   };
 
+  const spendXp = async (amount) => {
+    if ((user.xpBalance || 0) >= amount) {
+      await saveUser({
+        xpBalance: user.xpBalance - amount
+      });
+      return true;
+    }
+    return false;
+  };
+
   return { 
     addXp, 
     awardXp,

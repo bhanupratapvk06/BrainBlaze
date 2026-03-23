@@ -64,8 +64,28 @@ export const AuthProvider = ({ children }) => {
     await AsyncStorage.removeItem('user_data');
   };
 
+  const handleCosmeticPurchase = async (item) => {
+    if (user.xpBalance >= item.cost) {
+      const updatedOwned = [...(user.ownedCosmetics || []), item.id];
+      await saveUser({
+        xpBalance: user.xpBalance - item.cost,
+        ownedCosmetics: updatedOwned
+      });
+      return true;
+    }
+    return false;
+  };
+
+  const equipCosmetic = async (category, itemId) => {
+    const updatedEquipped = { ...user.equippedCosmetics, [category]: itemId };
+    await saveUser({ equippedCosmetics: updatedEquipped });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, saveUser, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ 
+      user, saveUser, login, logout, isLoading, 
+      handleCosmeticPurchase, equipCosmetic 
+    }}>
       {children}
     </AuthContext.Provider>
   );
