@@ -25,6 +25,13 @@ const GlobalStyles = ({ bg }) => (
     * {
       font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
       box-sizing: border-box;
+      /* Hide scrollbars globally but keep functionality */
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE/Edge */
+    }
+    
+    *::-webkit-scrollbar {
+      display: none; /* Chrome/Safari/Brave */
     }
 
     @keyframes fadeSlideDown {
