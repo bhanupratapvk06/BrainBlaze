@@ -1,43 +1,41 @@
 import { useAuth } from '../contexts/AuthContext';
-import { calculateXP } from '../utils/xpCalc';
 
+/**
+ * useXP — reads XP from AuthContext (which is synced from server after quiz submit).
+ * Adding/spending XP is handled server-side via quiz/submit and shop/purchase.
+ * These local methods remain for optimistic UI during sessions that haven't submitted yet.
+ */
 export const useXP = () => {
-  const { user, saveUser } = useAuth();
+  const { user, saveUser, syncFromServer } = useAuth();
 
   /**
-   * Calculates and adds XP to the user's account.
+   * addXp — optimistic local increment only.
+   * The server is the source of truth; call syncFromServer() after submit.
    */
-  const addXp = async (base, speedTime, isHard, powerUp, aiBonus) => {
-    const earned = calculateXP(base, speedTime, isHard, powerUp, aiBonus);
+  const addXp = async (amount) => {
     await saveUser({
-      xpEarned: (user.xpEarned || 0) + earned,
-      xpBalance: (user.xpBalance || 0) + earned
+      xpEarned:  (user.xpEarned  || 0) + amount,
+      xpBalance: (user.xpBalance || 0) + amount,
     });
-    return earned;
+    return amount;
   };
 
-  const awardXp = async (amount) => {
-    await saveUser({
-      xpEarned: (user.xpEarned || 0) + amount,
-      xpBalance: (user.xpBalance || 0) + amount
-    });
-  };
+  const awardXp = addXp;
 
   const spendXp = async (amount) => {
     if ((user.xpBalance || 0) >= amount) {
-      await saveUser({
-        xpBalance: user.xpBalance - amount
-      });
+      await saveUser({ xpBalance: user.xpBalance - amount });
       return true;
     }
     return false;
   };
 
-  return { 
-    addXp, 
+  return {
+    addXp,
     awardXp,
-    spendXp, 
-    xpBalance: user.xpBalance || 0, 
-    xpEarned: user.xpEarned || 0 
+    spendXp,
+    syncFromServer,
+    xpBalance: user.xpBalance || 0,
+    xpEarned:  user.xpEarned  || 0,
   };
 };

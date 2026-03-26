@@ -1,10 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Trophy } from 'lucide-react';
 import { useTheme, useAuth } from "../../src/hooks";
 import { Tap } from "../../src/components";
 import { makeSubjects, CHAPTERS, LB_DATA } from "../../src/assets/data";
 import { BottomNavSpacer } from '../../src/components/BottomNavSpacer';
+import { leaderboardApi } from '../../src/api/leaderboardApi';
+
 
 // ─── constants ───────────────────────────────────────────────────────────────
 
@@ -40,8 +42,40 @@ export default function LeaderboardScreen() {
   const [selSubject, setSelSubject] = useState("Maths");
   const [selChapter, setSelChapter] = useState(CHAPTERS.Maths[0]);
   const [chapterReady, setChapterReady] = useState(false);
+  const [liveData, setLiveData] = useState(null);
+  const [isFetching, setIsFetching] = useState(false);
 
   const sData = SUBJECTS.find(s => s.name === selSubject) ?? SUBJECTS[0];
+
+  // ── Fetch from backend when tab/subject/chapter changes ───────────────────
+  useEffect(() => {
+    let cancelled = false;
+    setIsFetching(true);
+    const fetchData = async () => {
+      try {
+        let res;
+        if (tab === 'global') {
+          res = await leaderboardApi.getGlobal();
+        } else if (tab === 'subject') {
+          res = await leaderboardApi.getSubject(selSubject.toLowerCase());
+        } else if (tab === 'chapter' && chapterReady) {
+          res = await leaderboardApi.getChapter(encodeURIComponent(selChapter));
+        } else {
+          setLiveData(null);
+          setIsFetching(false);
+          return;
+        }
+        if (!cancelled) setLiveData(res);
+      } catch (err) {
+        console.warn('[leaderboard] API fetch failed (offline?):', err.message);
+        if (!cancelled) setLiveData(null);
+      } finally {
+        if (!cancelled) setIsFetching(false);
+      }
+    };
+    fetchData();
+    return () => { cancelled = true; };
+  }, [tab, selSubject, chapterReady ? selChapter : null, chapterReady]);
 
   const handleSubjectChange = (s) => {
     setSelSubject(s);
@@ -49,32 +83,46 @@ export default function LeaderboardScreen() {
     setChapterReady(false);
   };
 
-  // ── Stable derived data — never re-randomises on render ──
+  // ── Merge live data with static fallback ──────────────────────────────────
   const data = useMemo(() => {
+    if (liveData?.leaderboard?.length) {
+      return liveData.leaderboard.map(r => ({
+        name: r.name,
+        av:   '🐺',
+        xp:   r.xpEarned ?? r.subjectXp ?? r.bestScore ?? 0,
+        cls:  r.class,
+        isYou: r.studentId === user?.id,
+      }));
+    }
+    // Fallback to static demo data
     if (tab === "global") return LB_DATA;
     if (tab === "subject") return seededSlice(LB_DATA, selSubject.length, 7, 0.55);
     if (tab === "chapter" && chapterReady)
       return seededSlice(LB_DATA, selChapter.length, 6, 0.28);
     return [];
-  }, [tab, selSubject, selChapter, chapterReady]);
+  }, [liveData, tab, selSubject, selChapter, chapterReady, user?.id]);
 
-  // ── Only inject "You" when there's a real logged-in user ──
+  // ── Only inject "You" when there's a real logged-in user ──────────────────
   const all = useMemo(() => {
     if (!user) return data;
+    // If already in live data, don't duplicate
+    if (data.some(d => d.isYou)) return [...data].sort((a, b) => b.xp - a.xp);
     const you = {
-      name: user.name ?? "You",
-      av: "🐺",
-      xp: xpEarned,
-      cls: user.cls ?? "Class 9",
+      name:  user.name ?? "You",
+      av:    "🐺",
+      xp:    xpEarned,
+      cls:   user.cls ?? "Class 9",
       isYou: true,
     };
     return [...data, you].sort((a, b) => b.xp - a.xp);
   }, [data, user, xpEarned]);
 
   const subtitleText =
-    tab === "global" ? "All students · Class 9" :
-      tab === "subject" ? `${selSubject} rankings` :
-        `${selSubject} · ${selChapter}`;
+    isFetching ? "Fetching..." :
+    tab === "global" ? "All students" :
+    tab === "subject" ? `${selSubject} rankings` :
+    `${selSubject} · ${selChapter}`;
+
 
   const podiumReady = (tab !== "chapter" || chapterReady) && all.length >= 3;
 
@@ -267,8 +315,8 @@ export default function LeaderboardScreen() {
                 {tab === "global"
                   ? "Global Rankings"
                   : tab === "subject"
-                    ? `${sData.icon} ${selSubject}`
-                    : `${sData.icon} ${selSubject} · ${selChapter}`}
+                    ? <>{sData.icon} {selSubject}</>
+                    : <>{sData.icon} {selSubject} · {selChapter}</>}
               </p>
             </div>
 

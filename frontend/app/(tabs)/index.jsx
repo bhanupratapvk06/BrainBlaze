@@ -113,12 +113,12 @@ export default function DashboardScreen() {
                 boxShadow: `0 8px 24px ${C.hi}33`
               }}>🔥</div>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginBottom: 20 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 4, marginBottom: 20 }}>
               {days.map((d, i) => {
                 const done = i < streak, today = i === streak; return (
                   <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
                     <div style={{
-                      width: 38, height: 38, borderRadius: 12,
+                      width: 34, height: 34, borderRadius: 10,
                       backgroundColor: done ? C.hi : today ? C.bg3 : "transparent",
                       border: today ? `2px solid ${C.hi}` : done ? "none" : `1px solid ${C.bdr}`,
                       display: "flex", alignItems: "center", justifyContent: "center",

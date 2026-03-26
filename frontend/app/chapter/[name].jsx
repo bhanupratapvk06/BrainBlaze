@@ -4,6 +4,8 @@ import { ArrowLeft, Shield, Snowflake, Zap, Lightbulb } from 'lucide-react';
 import { useTheme, useQuiz, usePowerUp, useAuth } from "../../src/hooks";
 import { Tap, ToastNotification, PowerUpCard } from "../../src/components";
 import { makeSubjects, QUIZ } from "../../src/assets/data";
+import { quizApi } from "../../src/api/quizApi";
+import { notesApi } from "../../src/api/notesApi";
 
 export default function ChapterScreen() {
   const router = useRouter();
@@ -24,17 +26,44 @@ export default function ChapterScreen() {
   const SUBJECTS = makeSubjects(C);
   const sData = SUBJECTS.find(s => s.name === subjectName) || SUBJECTS[0];
 
-  const handleStartQuiz = () => {
-    const qs = QUIZ[subjectName] || QUIZ.Maths;
-    startQuiz({
-      subject: subjectName,
-      chapter: chapterName,
-      difficulty,
-      mode,
-      powerUp: activePowerUp,
-    }, qs.map(q => ({ ...q })));
+  const handleStartQuiz = async () => {
+    setToast({ msg: "Loading questions...", color: C.hi });
+    try {
+      let qs;
+      if (mode === 'ai') {
+        // topic, class, count
+        const res = await quizApi.generateAIQuiz(chapterName, user?.class || "9", 5);
+        qs = res.questions;
+      } else {
+        const res = await quizApi.getQuiz(chapterName, mode, difficulty);
+        qs = res.questions;
+      }
 
-    router.push({ pathname: '/quiz/[chapter]', params: { chapter: chapterName, subject: subjectName } });
+      if (!qs || !Array.isArray(qs) || qs.length === 0) throw new Error("No questions returned");
+
+      startQuiz({
+        subject: subjectName,
+        chapter: chapterName,
+        difficulty,
+        mode,
+        powerUp: activePowerUp,
+      }, qs);
+
+      router.push({ pathname: '/quiz/[chapter]', params: { chapter: chapterName, subject: subjectName } });
+    } catch (err) {
+      console.warn('[Chapter] Failed to fetch live questions:', err.message);
+      setToast({ msg: "Using offline question bank", color: C.hi });
+      // Fallback
+      const fallbackQs = QUIZ[subjectName] || QUIZ.Maths;
+      startQuiz({
+        subject: subjectName,
+        chapter: chapterName,
+        difficulty,
+        mode,
+        powerUp: activePowerUp,
+      }, fallbackQs.map(q => ({ ...q })));
+      router.push({ pathname: '/quiz/[chapter]', params: { chapter: chapterName, subject: subjectName } });
+    }
   };
 
   const pUps = [
@@ -64,7 +93,23 @@ export default function ChapterScreen() {
             <span key={i} style={{ backgroundColor: C.bg2, border: `1px solid ${C.bdr}`, borderRadius: 999, padding: "8px 14px", fontSize: 13, fontWeight: 600, color: C.text }}>{t}</span>
           ))}
         </div>
-        <Tap onClick={() => { setToast({ msg: "Notes downloading... ✓", color: C.ok }) }}
+        <Tap onClick={async () => {
+          setToast({ msg: "Requesting study guide...", color: C.hi });
+          try {
+            const res = await notesApi.getNotes(chapterName);
+            if (res.url) {
+              setToast({ msg: "Opening PDF ✓", color: C.ok });
+              // Open in new tab (web)
+              if (typeof window !== 'undefined') {
+                window.open(res.url, '_blank');
+              }
+            } else {
+              setToast({ msg: "Study guide coming soon!", color: C.hi });
+            }
+          } catch (err) {
+            setToast({ msg: "Chapter notes not found in cloud", color: C.danger });
+          }
+        }}
           style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", border: `1px solid ${C.bdr}`, backgroundColor: C.bg2, borderRadius: 16, padding: "16px", textAlign: "center", fontSize: 15, fontWeight: 700, marginBottom: 24, color: C.text, boxSizing: "border-box" }}>
           📥 Download Notes (PDF)
         </Tap>

@@ -1,17 +1,25 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const BASE_URL = 'https://api.eduquest.app/api';
+// ─── Backend URL ──────────────────────────────────────────────────────────────
+// For local development: backend runs on http://localhost:3001
+// For production: set this to your Railway/hosted URL, e.g. https://api.brainblaze.app
+// NOTE: On a physical device/emulator, replace localhost with your machine's LAN IP
+//       e.g. http://192.168.1.100:3001
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3001/api';
 
-export const client = async (endpoint, { body, ...customConfig } = {}) => {
+export const client = async (endpoint, { body, method, ...customConfig } = {}) => {
   const token = await AsyncStorage.getItem('jwt_token');
   const headers = { 'Content-Type': 'application/json' };
-  
+
   if (token) {
     headers.Authorization = `Bearer ${token}`;
   }
 
+  // Determine HTTP method: explicit > body present > GET
+  const resolvedMethod = method || (body ? 'POST' : 'GET');
+
   const config = {
-    method: body ? 'POST' : 'GET',
+    method: resolvedMethod,
     ...customConfig,
     headers: {
       ...headers,
@@ -29,7 +37,11 @@ export const client = async (endpoint, { body, ...customConfig } = {}) => {
     if (response.ok) {
       return data;
     }
-    throw new Error(data.error || response.statusText);
+    // Preserve server-side error code for better UI handling
+    const err = new Error(data.error || response.statusText);
+    err.code   = data.code;
+    err.status = response.status;
+    throw err;
   } catch (err) {
     throw err;
   }

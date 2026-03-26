@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'expo-router';
 import { ArrowLeft } from 'lucide-react';
 import { useAuth, useTheme } from '../src/hooks';
 import { Tap, ToastNotification } from '../src/components';
 import { SHOP } from '../src/assets/data';
+import { shopApi } from '../src/api/shopApi';
+
 
 // ─── constants ───────────────────────────────────────────────────────────────
 
@@ -57,34 +59,66 @@ export default function ShopScreen() {
   const { theme: C } = useTheme();
   const { user, handleCosmeticPurchase, equipCosmetic } = useAuth();
 
-  const xpBalance = user?.xpBalance ?? 0;
-  const ownedCosmetics = user?.cosmetics?.owned ?? ["student", "white", "plain", "none"];
-  const equippedCosmetics = user?.cosmetics?.equipped ?? {
-    shape: "student", color: "white", background: "plain", frame: "none",
-  };
-
   const [tab, setTab] = useState("shape");
   const [toast, setToast] = useState(null);
+  const [serverShop, setServerShop] = useState(null);
+
+  // ── Load live shop items from backend on mount ───────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    shopApi.getItems()
+      .then(res => { if (!cancelled) setServerShop(res); })
+      .catch(e => console.warn('[shop] Failed to load live items (offline?):', e.message));
+    return () => { cancelled = true; };
+  }, []);
+
+  // ── Merge server data with local SHOP catalogue ──────────────────────────
+  const xpBalance = serverShop?.xpBalance ?? user?.xpBalance ?? 0;
+
+  // Build owned/equipped sets from server or user context
+  const { ownedSet, equippedCosmetics } = useMemo(() => {
+    const ownedSet = new Set(['student', 'white', 'plain', 'none']);
+    const eq = { shape: 'student', color: 'white', background: 'plain', frame: 'none' };
+
+    if (serverShop?.categories) {
+      Object.entries(serverShop.categories).forEach(([cat, items]) => {
+        items.forEach(item => {
+          if (item.owned)    ownedSet.add(item.id);
+          if (item.equipped) eq[cat] = item.id;
+        });
+      });
+    } else if (user?.ownedCosmetics) {
+      user.ownedCosmetics.forEach(id => ownedSet.add(id));
+      Object.assign(eq, user.equippedCosmetics ?? {});
+    }
+
+    return { ownedSet, equippedCosmetics: eq };
+  }, [serverShop, user]);
 
   const items = SHOP[tab] ?? [];
   const curShape = SHOP.shape.find(s => s.id === equippedCosmetics.shape);
 
   const purchase = async (item) => {
-    const owned = ownedCosmetics.includes(item.id);
+    const owned     = ownedSet.has(item.id);
     const canAfford = xpBalance >= item.cost;
 
-    if (owned) {
+    if (owned || item.cost === 0) {
       await equipCosmetic(tab, item.id);
       setToast({ msg: `${item.name} equipped ✓`, color: C.ok });
     } else if (canAfford) {
-      await handleCosmeticPurchase(item);
-      await equipCosmetic(tab, item.id);
-      setToast({ msg: `${item.name} unlocked! ✨`, color: C.acc });
+      const ok = await handleCosmeticPurchase(item);
+      if (ok) {
+        setToast({ msg: `${item.name} unlocked! ✨`, color: C.acc });
+        // Refresh live shop data
+        shopApi.getItems().then(res => setServerShop(res)).catch(() => {});
+      } else {
+        setToast({ msg: "Purchase failed — try again", color: C.danger });
+      }
     } else {
-      // Guard lives here — not on the disabled prop which Tap doesn't handle
       setToast({ msg: `Need ${item.cost - xpBalance} more XP`, color: C.danger });
     }
   };
+
 
   return (
     <div style={{ backgroundColor: C.bg, minHeight: "100vh", paddingBottom: 40 }}>
@@ -176,7 +210,7 @@ export default function ShopScreen() {
       {/* ── Item grid ── */}
       <div style={{ padding: "0 24px 24px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         {items.map(item => {
-          const owned = ownedCosmetics.includes(item.id);
+          const owned = ownedSet.has(item.id);
           const equipped = equippedCosmetics[tab] === item.id;
           const canAfford = xpBalance >= item.cost;
 

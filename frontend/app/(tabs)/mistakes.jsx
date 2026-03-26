@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, XCircle, CheckCircle, Flame } from 'lucide-react';
 import { useTheme, useMistakeBank, useXP } from "../../src/hooks";
@@ -9,33 +9,46 @@ import { BottomNavSpacer } from '../../src/components/BottomNavSpacer';
 export default function MistakesScreen() {
   const router = useRouter();
   const { theme: C } = useTheme();
-  const { mistakeBank, setMistakeBank } = useMistakeBank();
-  const { addXp } = useXP();
+  const { mistakeBank, setMistakeBank, removeMistake, fetchFromServer } = useMistakeBank();
+  const { addXp, syncFromServer } = useXP();
+
 
   const [activeId, setActiveId] = useState(null);
   const [vals, setVals] = useState({});
   const [cleared, setCleared] = useState(false);
+  const [total, setTotal] = useState(0);
   const [toast, setToast] = useState(null);
 
   const SUBJECTS = makeSubjects(C);
-  const total = 2; // Arbitrary target for demo
   const displayMistakes = mistakeBank || [];
 
-  const attempt = async (id, correct) => {
-    if ((vals[id] || "").trim().toLowerCase() === correct.toLowerCase()) {
-      const next = displayMistakes.filter(q => q.id !== id);
-      setMistakeBank(next);
-      await addXp(10);
-      setToast({ msg: "+10 XP ✅", color: C.ok });
-      if (next.length === 0) {
+  // ── Load mistake bank from server on mount ──────────────────────────────
+  useEffect(() => {
+    fetchFromServer('all').then(items => {
+      setTotal(items.length);
+    }).catch(e =>
+      console.warn('[mistakes] Failed to fetch from server:', e.message)
+    );
+  }, []);
+
+  const attempt = async (id, correct, userInput) => {
+    const isCorrect = (userInput || vals[id] || "").trim().toLowerCase() === correct.toLowerCase();
+    if (isCorrect) {
+      const result = await removeMistake(id);
+      const xpAward = result?.xpAwarded ?? 10;
+      setToast({ msg: `+${xpAward} XP ✅`, color: C.ok });
+      // Sync authoritative XP from server
+      syncFromServer().catch(() => {});
+      if ((mistakeBank.length - 1) === 0 || result?.comebackBonus) {
         setCleared(true);
-        await addXp(50);
+        setToast({ msg: `+${xpAward} XP ✅ + Comeback Bonus!`, color: C.ok });
       }
     } else {
       setToast({ msg: "Not quite — try again! ❌", color: C.danger });
     }
     setActiveId(null);
   };
+
 
   if (cleared || displayMistakes.length === 0) return (
     <div style={{ backgroundColor: C.bg, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, textAlign: "center" }}>

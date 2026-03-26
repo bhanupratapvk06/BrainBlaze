@@ -1,10 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { Pencil, BookOpen, Flame, Trophy, ChevronRight } from 'lucide-react';
 import { useAuth, useTheme, useStreak } from "../../src/hooks";
 import { Tap } from "../../src/components";
 import { makeSubjects, SHOP } from "../../src/assets/data";
 import { BottomNavSpacer } from '../../src/components/BottomNavSpacer';
+import { profileApi } from '../../src/api/profileApi';
+
 
 // ─── constants ───────────────────────────────────────────────────────────────
 
@@ -52,38 +54,85 @@ export default function ProfileScreen() {
 
   const [actTab, setActTab] = useState("heatmap");
   const [chartRange, setChartRange] = useState("Week");
+  const [liveStats, setLiveStats] = useState(null);
+  const [liveHeatmap, setLiveHeatmap] = useState(null);
+  const [liveAchievements, setLiveAchievements] = useState(null);
 
-  const xpEarned = user?.xpEarned ?? 0;
-  const xpBalance = user?.xpBalance ?? 0;
+  // ── Fetch all profile data from backend on mount ─────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    const fetchProfile = async () => {
+      try {
+        const [statsRes, hmRes, achRes] = await Promise.all([
+          profileApi.getStats(),
+          profileApi.getHeatmap(),
+          profileApi.getAchievements(),
+        ]);
+        if (cancelled) return;
+        setLiveStats(statsRes);
+        setLiveHeatmap(hmRes);
+        setLiveAchievements(achRes);
+      } catch (err) {
+        console.warn('[profile] API fetch failed (offline?):', err.message);
+      }
+    };
+    if (user?.jwt) fetchProfile();
+    return () => { cancelled = true; };
+  }, [user?.jwt]);
+
+  const xpEarned = liveStats?.xpEarned ?? user?.xpEarned ?? 0;
+  const xpBalance = liveStats?.xpBalance ?? user?.xpBalance ?? 0;
+  const liveStreak = liveStats?.streak ?? streak ?? 0;
+  const quizzesCompleted = liveStats?.quizzesCompleted ?? 0;
+  const globalRank = liveStats?.globalRank ?? null;
   const name = user?.name ?? "Student";
   const cls = user?.cls ?? "Class 9";
 
-  const equippedCosmetics = user?.cosmetics?.equipped ?? {
+  const equippedCosmetics = user?.equippedCosmetics ?? {
     shape: "student", color: "white", background: "plain", frame: "none",
   };
 
   const SUBJECTS = makeSubjects(C);
   const curShape = SHOP.shape.find(s => s.id === equippedCosmetics.shape);
 
-  const hm = useMemo(
-    () => makeHeatmap(user?.id?.length ?? 7, C),
-    [user?.id, C.acc, C.bdr]
-  );
+  // Heatmap: use live data if available, else seeded fallback
+  const hm = useMemo(() => {
+    if (liveHeatmap?.days?.length) {
+      const LEVEL_TO_COLOR = [C.bdr, C.acc + "44", C.acc + "99", C.acc, C.acc];
+      return liveHeatmap.days.map(d => LEVEL_TO_COLOR[d.activityLevel] ?? C.bdr);
+    }
+    return makeHeatmap(user?.id?.length ?? 7, C);
+  }, [liveHeatmap, user?.id, C.acc, C.bdr]);
 
   const bars = [65, 42, 88, 18, 100, 30, 55];
 
-  const badges = [
-    { i: "🔥", n: "7-Day Streak", d: "7 days in a row", clr: C.hi },
-    { i: "🏆", n: "Top 10", d: "Leaderboard legend", clr: C.sec },
-    { i: "⭐", n: "Perfect Score", d: "100% on a quiz", clr: C.ok },
-    { i: "⚡", n: "Fast Learner", d: "Speed bonus ×5", clr: C.acc },
-    { i: "🧠", n: "Quiz Master", d: "50 quizzes done", clr: C.sec },
-    { i: "💪", n: "Mistake Slayer", d: "Cleared bank", clr: C.ok },
-  ];
+  // Achievements: use live data or static fallback
+  const badges = useMemo(() => {
+    if (liveAchievements?.achievements?.length) {
+      const colorMap = {
+        streak_7: C.hi, streak_14: C.hi, streak_30: C.hi,
+        top_10: C.sec, perfect_score: C.ok, fast_learner: C.acc,
+        quiz_master: C.sec, mistake_slayer: C.ok,
+      };
+      return liveAchievements.achievements.slice(0, 6).map(a => ({
+        i: a.icon, n: a.name, d: a.description,
+        clr: colorMap[a.id] ?? C.acc, unlocked: a.unlocked,
+      }));
+    }
+    return [
+      { i: "🔥", n: "7-Day Streak", d: "7 days in a row",    clr: C.hi  },
+      { i: "🏆", n: "Top 10",       d: "Leaderboard legend",  clr: C.sec },
+      { i: "⭐", n: "Perfect Score", d: "100% on a quiz",      clr: C.ok  },
+      { i: "⚡", n: "Fast Learner",  d: "Speed bonus ×5",      clr: C.acc },
+      { i: "🧠", n: "Quiz Master",   d: "50 quizzes done",     clr: C.sec },
+      { i: "💪", n: "Mistake Slayer",d: "Cleared bank",        clr: C.ok  },
+    ];
+  }, [liveAchievements, C]);
 
-  // Level derived from XP — replace with real formula if needed
-  const level = Math.floor(xpEarned / 1000) + 1;
-  const levelPct = (xpEarned % 1000) / 10; // 0–100
+  // Level derived from XP
+  const level    = Math.floor(xpEarned / 1000) + 1;
+  const levelPct = (xpEarned % 1000) / 10;
+
 
   return (
     <div style={{ backgroundColor: C.bg, minHeight: "100vh" }}>
@@ -190,11 +239,12 @@ export default function ProfileScreen() {
           backgroundColor: C.bg2, borderRadius: 20,
           border: `1px solid ${C.bdr}`, padding: "16px 20px",
         }}>
-          <StatRow Icon={BookOpen} label="Quizzes taken" value="24" clr={C.acc} C={C} />
-          <StatRow Icon={Flame} label="Day streak" value={streak ?? "0"} clr={C.hi} C={C} />
-          <StatRow Icon={Trophy} label="Global rank" value="#10" clr={C.sec} C={C} last />
+          <StatRow Icon={BookOpen} label="Quizzes taken"  value={quizzesCompleted || "—"} clr={C.acc} C={C} />
+          <StatRow Icon={Flame}    label="Day streak"     value={liveStreak}               clr={C.hi}  C={C} />
+          <StatRow Icon={Trophy}   label="Global rank"    value={globalRank ? `#${globalRank}` : "—"} clr={C.sec} C={C} last />
         </div>
       </div>
+
 
       {/* ── Study activity — left accent border, no top bar ── */}
       <div style={{ padding: "0 24px 24px" }}>
