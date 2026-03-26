@@ -1,0 +1,42 @@
+[2026-03-26T01:06:59.306Z] [INFO] [server] BrainBlaze API running on port 3002 (development)
+[0mGET /health [32m200[0m 2.472 ms - 47[0m
+[0mGET /health [32m200[0m 0.473 ms - 47[0m
+[0mGET /health [32m200[0m 0.385 ms - 47[0m
+[0mGET /favicon.ico [33m401[0m 0.499 ms - 76[0m
+[0mGET /api/mistakes/subject/all [33m401[0m 0.242 ms - 76[0m
+[0mGET /api/leaderboard/global [33m401[0m 0.248 ms - 76[0m
+[2026-03-26T01:15:43.989Z] [INFO]  [auth] Login attempt — name="Nikhil" class=9
+[2026-03-26T01:15:43.989Z] [INFO]  [auth] New student created — id=56d7a119-8378-48cd-939e-41c9c895cc5a
+[0mPOST /api/auth/login [32m200[0m 2183.463 ms - 605[0m
+[2026-03-26T01:15:51.687Z] [DEBUG] [jwt] Authenticated studentId=56d7a119-8378-48cd-939e-41c9c895cc5a path=/api/profile/stats
+[2026-03-26T01:15:51.689Z] [INFO]  [profile] Fetching stats for studentId=56d7a119-8378-48cd-939e-41c9c895cc5a
+[2026-03-26T01:15:51.692Z] [DEBUG] [jwt] Authenticated studentId=56d7a119-8378-48cd-939e-41c9c895cc5a path=/api/profile/heatmap
+[2026-03-26T01:15:51.693Z] [INFO]  [profile] Fetching heatmap for studentId=56d7a119-8378-48cd-939e-41c9c895cc5a
+[2026-03-26T01:15:51.695Z] [DEBUG] [jwt] Authenticated studentId=56d7a119-8378-48cd-939e-41c9c895cc5a path=/api/profile/achievements
+[2026-03-26T01:15:51.696Z] [INFO]  [profile] Fetching achievements for studentId=56d7a119-8378-48cd-939e-41c9c895cc5a
+[0mGET /api/profile/heatmap [32m200[0m 291.962 ms - 1425[0m
+[0mGET /api/profile/stats [32m200[0m 521.138 ms - 212[0m
+[0mGET /api/profile/achievements [32m200[0m 1115.262 ms - 1030[0m
+[2026-03-26T01:16:04.113Z] [DEBUG] [jwt] Authenticated studentId=56d7a119-8378-48cd-939e-41c9c895cc5a path=/api/mistakes/subject/all
+[2026-03-26T01:16:04.115Z] [INFO]  [mistakeBank] Fetching mistakes — subject=all studentId=56d7a119-8378-48cd-939e-41c9c895cc5a
+[0mGET /api/mistakes/subject/all [32m200[0m 667.147 ms - 22[0m
+[2026-03-26T01:16:05.401Z] [DEBUG] [jwt] Authenticated studentId=56d7a119-8378-48cd-939e-41c9c895cc5a path=/api/leaderboard/global
+[2026-03-26T01:16:05.403Z] [INFO]  [leaderboard] Fetching global leaderboard for studentId=56d7a119-8378-48cd-939e-41c9c895cc5a
+[0mGET /api/leaderboard/global [32m200[0m 237.871 ms - 546[0m
+[2026-03-26T01:16:11.757Z] [DEBUG] [jwt] Authenticated studentId=56d7a119-8378-48cd-939e-41c9c895cc5a path=/api/profile/stats
+[2026-03-26T01:16:11.760Z] [INFO]  [profile] Fetching stats for studentId=56d7a119-8378-48cd-939e-41c9c895cc5a
+[2026-03-26T01:16:11.764Z] [DEBUG] [jwt] Authenticated studentId=56d7a119-8378-48cd-939e-41c9c895cc5a path=/api/profile/heatmap
+[2026-03-26T01:16:11.765Z] [INFO]  [profile] Fetching heatmap for studentId=56d7a119-8378-48cd-939e-41c9c895cc5a
+[2026-03-26T01:16:11.768Z] [DEBUG] [jwt] Authenticated studentId=56d7a119-8378-48cd-939e-41c9c895cc5a path=/api/profile/achievements
+[2026-03-26T01:16:11.769Z] [INFO]  [profile] Fetching achievements for studentId=56d7a119-8378-48cd-939e-41c9c895cc5a
+[0mGET /api/profile/heatmap [36m304[0m 283.279 ms - -[0m
+[0mGET /api/profile/achievements [32m200[0m 796.182 ms - 1030[0m
+[0mGET /api/profile/stats [36m304[0m 900.022 ms - -[0m
+[2026-03-26T01:16:24.235Z] [DEBUG] [jwt] Authenticated studentId=56d7a119-8378-48cd-939e-41c9c895cc5a path=/api/notes/chapter/Number%20Systems
+[2026-03-26T01:16:24.236Z] [INFO]  [notes] Request for chapter=Number Systems class=9
+[2026-03-26T01:16:24.536Z] [INFO]  [r2] Generating signed URL for: notes/9/general/Number Systems.pdf (expires 900s)
+[0mGET /api/notes/chapter/Number%20Systems [32m200[0m 330.487 ms - 556[0m
+[2026-03-26T01:16:34.377Z] [DEBUG] [jwt] Authenticated studentId=56d7a119-8378-48cd-939e-41c9c895cc5a path=/api/quiz/Number%20Systems
+[2026-03-26T01:16:34.379Z] [INFO]  [quiz] Fetching quiz — chapter=Number Systems difficulty=spark class=9
+[2026-03-26T01:16:34.380Z] [INFO]  [r2] Fetching object: quizzes/9/general/Number Systems/spark.json
+[0mGET /api/quiz/Number%20Systems?mode=precomputed&difficulty=spark [33m404[0m 248.377 ms - 114[0m

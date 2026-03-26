@@ -1,0 +1,6 @@
+[2026-03-26T01:16:34.380Z] [ERROR] [r2] Failed to fetch quizzes/9/general/Number Systems/spark.json: The specified key does not exist.
+[2026-03-26T01:16:34.624Z] [ERROR] [errorHandler] GET /api/quiz/Number%20Systems → 404 NOT_FOUND: Quiz not found in storage: quizzes/9/general/Number Systems/spark.json
+Error: Quiz not found in storage: quizzes/9/general/Number Systems/spark.json
+    at fetchR2JSON (D:\Business\brainblaze\backend\src\services\r2.js:56:17)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async D:\Business\brainblaze\backend\src\routes\quiz.js:77:22
